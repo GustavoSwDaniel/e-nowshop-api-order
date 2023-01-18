@@ -1,0 +1,11 @@
+{
+    "totalAmount": "",
+    "paymentMethod": "[CREDIT_CARD, PIX, INVOICE]",
+    "instalments": "",
+    "items": [
+        {
+            "uuid": "",
+            "value": 10
+        }
+    ]
+}
