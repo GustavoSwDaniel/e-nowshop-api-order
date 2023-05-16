@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: enowshop-api-order-deployment
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: enowshop-api-order
@@ -14,9 +14,9 @@ spec:
     spec:
       containers:
         - name: enowshop-api-user
-          image: gcr.io/enowhop/enowshop-api-order:4
+          image: gcr.io/enowhop/enowshop-api-order:5
           ports:
-              - containerPort: 8080
+              - containerPort: 8081
           env:
             - name: A-POSTGRES_DATABASE_URL
               valueFrom:
