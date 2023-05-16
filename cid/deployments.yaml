@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: enowshop-api-order-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: enowshop-api-order
+  template:
+    metadata:
+      labels:
+        app: enowshop-api-order
+    spec:
+      containers:
+        - name: enowshop-api-user
+          image: gcr.io/enowhop/enowshop-api-order:latest
+          ports:
+              - containerPort: 8080
+          env:
+            - name: A-POSTGRES_DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: api-orders-secrets
+                  key: A-POSTGRES_DATABASE_URL
+            - name: MONGO_DATABASE_DB
+              valueFrom:
+                secretKeyRef:
+                  name: api-orders-secrets
+                  key: MONGO_DATABASE_DB
+            - name: MONGO_DATABASE_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: api-orders-secrets
+                  key: MONGO_DATABASE_HOST
+            - name: MONGO_DATABASE_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: api-orders-secrets
+                  key: MONGO_DATABASE_PORT
+            - name: MONGO_DATABASE_USER
+              valueFrom:
+                secretKeyRef:
+                  name: api-orders-secrets
+                  key: MONGO_DATABASE_USER
+            - name: MONGO_DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: api-orders-secrets
+                  key: MONGO_DATABASE_PASSWORD
+            - name: MONGO_DATABASE_AUTH_SOURCE
+              valueFrom:
+                secretKeyRef:
+                  name: api-orders-secrets
+                  key: MONGO_DATABASE_AUTH_SOURCE
+            - name: KEYCLOAK_PUBLIC_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: api-orders-secrets
+                  key: KEYCLOAK_PUBLIC_KEY
