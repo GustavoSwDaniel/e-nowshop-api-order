@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: enowshop-api-order-deployment
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: enowshop-api-order
@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: enowshop-api-user
-          image: gcr.io/enowhop/enowshop-api-order:2
+          image: gcr.io/enowhop/enowshop-api-order:4
           ports:
               - containerPort: 8080
           env:

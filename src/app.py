@@ -35,4 +35,4 @@ def create_app() -> FastAPI:
 api_app = create_app()
 
 if __name__ == '__main__':
-    uvicorn.run(api_app, host='0.0.0.0', port=8082)
+    uvicorn.run(api_app, host='0.0.0.0', port=8081)

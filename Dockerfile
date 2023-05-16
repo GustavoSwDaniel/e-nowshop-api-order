@@ -13,7 +13,7 @@ WORKDIR /usr/src
 
 COPY ./src .
 
-EXPOSE 8080
+EXPOSE 8081
 
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt --trusted-host 44.211.201.219
