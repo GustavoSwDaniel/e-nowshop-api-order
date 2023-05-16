@@ -64,6 +64,7 @@ class CarsService:
         return quoet_valeu
 
     async def get_car_with_user_uuid(self, user_uuid: str, send_type: str) -> Dict:
+        print(user_uuid)
         user = await self.get_user_by_keycloak_uuid(user_uuid=user_uuid)
 
         cart_porducts = await self._cars_repository.get_car_by_user_uuid(user_uuid=user.uuid)

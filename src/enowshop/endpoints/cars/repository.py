@@ -40,7 +40,6 @@ class CarsRepository(NosqlRepository):
     async def get_car_by_user_uuid(self, user_uuid: str) -> Cars:
         with self.session_factory() as session:
             result = await session.find_one(self.model, self.model.user_uuid == user_uuid)
-            print(result)
             if not result:
                 raise RepositoryException('Car does not found')
             return result

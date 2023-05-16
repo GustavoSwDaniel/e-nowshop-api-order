@@ -20,6 +20,13 @@ class Container(containers.DeclarativeContainer):
     # Config database
     postgres_db = providers.Singleton(PostgresDatabase, database_url=Config.DATABASE_URL)
 
+    print(Config.MONGO_DATABASE_DB)
+    print(Config.MONGO_DATABASE_HOST)
+    print(Config.MONGO_DATABASE_PORT)
+    print(Config.MONGO_DATABASE_USER)
+    print(Config.MONGO_DATABASE_PASSWORD)
+    print(Config.MONGO_DATABASE_AUTH_SOURCE)
+    # Config database
     mongo_database = providers.Singleton(MongoDatabase, database=Config.MONGO_DATABASE_DB,
                                          host=Config.MONGO_DATABASE_HOST, port=Config.MONGO_DATABASE_PORT,
                                          user=Config.MONGO_DATABASE_USER, password=Config.MONGO_DATABASE_PASSWORD,
