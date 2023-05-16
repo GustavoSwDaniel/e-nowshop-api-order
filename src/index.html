@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Dynamic Box with Items and Remove Buttons</title>
+  <style>
+    #container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .item {
+      display: flex;
+      align-items: center;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    .text {
+      margin-right: 10px;
+    }
+
+    .remove {
+      background: transparent;
+      border: none;
+      color: red;
+      font-weight: bold;
+      font-size: 1.2em;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div id="container">
+    <div class="item">
+      <span class="text">Item 1</span>
+      <button class="remove">X</button>
+    </div>
+    <div class="item">
+      <span class="text">Item 2</span>
+      <button class="remove">X</button>
+    </div>
+    <div class="item">
+      <span class="text">Item 3</span>
+      <button class="remove">X</button>
+    </div>
+  </div>
+  <input type="text" id="inputField">
+  <button id="addButton">Add Item</button>
+  <script>
+    const container = document.getElementById("container");
+    const inputField = document.getElementById("inputField");
+    const addButton = document.getElementById("addButton");
+
+    addButton.addEventListener("click", () => {
+      const newItem = document.createElement("div");
+      newItem.className = "item";
+      newItem.innerHTML = `
+        <span class="text">${inputField.value}</span>
+        <button class="remove">X</button>
+      `;
+      container.appendChild(newItem);
+      inputField.value = "";
+    });
+
+    container.addEventListener("click", (event) => {
+      if (event.target.classList.contains("remove")) {
+        event.target.parentNode.remove();
+      }
+    });
+  </script>
+</body>
+</html>

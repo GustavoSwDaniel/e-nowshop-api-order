@@ -4,18 +4,29 @@ import io
 from typing import Dict, List
 from uuid import uuid4
 
+from enowshop.endpoints.paginate import paginate
+from enowshop.endpoints.quotes.service import QuotesService
+from decimal import Decimal
 import pyqrcode
 
 from enowshop.endpoints.orders.repository import OrdersRepository, ProductsRepository, OrderItemsRepository
+from enowshop.endpoints.cars.repository import UserRepository
+from enowshop.endpoints.quotes.repository import UsersAddressRepository
 from enowshop_payment.orders.build import BuildPayment
 
 
 class OrdersService:
     def __init__(self, orders_repository: OrdersRepository, products_repository: ProductsRepository,
-                 order_items_repository: OrderItemsRepository):
+                 order_items_repository: OrderItemsRepository, user_reponsitory: UserRepository,
+                 user_address_repository: UsersAddressRepository,
+                 quotes_service: QuotesService, payment_access_token: Dict):
         self.orders_repository = orders_repository
         self.products_repository = products_repository
         self.order_items_repository = order_items_repository
+        self.user_reponsitory = user_reponsitory
+        self.user_address_repository = user_address_repository
+        self.quotes_service = quotes_service
+        self.payment_access_token = payment_access_token
 
     @staticmethod
     def __build_order_items(products_id: List[int], order_id: int) -> List[Dict]:
@@ -37,28 +48,58 @@ class OrdersService:
             'base64': 'data:image/png;base64,' + encoded,
             'expiration_date': datetime.datetime.now()
         }
+    
+    async def sum_products(self, products: List[Dict]) -> float:
+        total = 0
+        for product in products:
+            product_data = await self.products_repository.get_products_by_uuid(uuid=product['uuid'])
+            total += (product_data.price / 100) * product['quantity']
 
-    @staticmethod
-    def build_pix_payload():
+        return total
+
+    async def build_pix_payload(self, products: List, quote_value: float):
         return {
-            'total_value': 4,
-            'user_info': {
+            'total_value': round(float(await self.sum_products(products=products) + quote_value), 2),
+            'user_info': { # round(Decimal(payload_payment.get("total_value")), 2)
                 'email': 'gustavodanieldetoledo@gmail.com',
                 'first_name': 'gustavo',
                 'last_name': 'daniel'
             }
         }
+    
+    async def get_user_data(self, user_uuid_keycloak: str):
+        return await self.user_reponsitory.filter_by    ({'keycloak_uuid': user_uuid_keycloak})
+    
+    async def calc_quotes(self, address_id, products, type_quote):
+       quote_value = await self.quotes_service.calc_quote(products={"products": products}, 
+                                                    uuid_address=address_id, 
+                                                    type_quote=type_quote)
+       return quote_value
 
-    async def create_order(self, order_data: Dict, user_id: int = 1) -> Dict:
+
+    async def create_order(self, order_data: Dict, user_uuid_keycloak: str) -> Dict:
         products_data = order_data.pop('items')
         order_uuid = str(uuid4())
 
-        order_data['user_id'] = user_id
+        user_data = await self.get_user_data(user_uuid_keycloak=user_uuid_keycloak)
+
+        quote_info = await self.calc_quotes(address_id=order_data.pop('address_id'), 
+                                       products=products_data, 
+                                       type_quote=order_data.pop('quote_type'))
+        quote_value = float(quote_info.get('quotes')[0]['valor'].replace(',', '.'))
+        order_data['user_id'] = user_data.id
         order_data['uuid'] = order_uuid
 
         order = await self.orders_repository.create(order_data)
+        payload_payment = await self.build_pix_payload(products=products_data, quote_value=quote_value)
         payment = BuildPayment(payment_type='PIX').build_payment()
-        payment_info = payment.create_order(order_data=self.build_pix_payload())
+        payment_info = payment.create_order(order_data=payload_payment, access_key=self.payment_access_token['PIX'])
+
+        update_order = await self.orders_repository.update(pk=order.id, values={
+            'total_amount': int(payload_payment['total_value'] * 100),
+            'installments': 1,
+            'meta_data': payment_info.__dict__
+        })
 
         products_uuid = [product_uuid['uuid'] for product_uuid in products_data]
         products = await self.products_repository.get_products_by_list_uuid(uuids=products_uuid)
@@ -68,13 +109,16 @@ class OrdersService:
 
         await self.order_items_repository.create_order_items(order_items=order_items)
 
-        return {'uuid': order_uuid, 'payment_info': {'total_value':order.total_amount ,'qrcode': payment_info.qrcode, 'qrcode_text': payment_info.qrcode_text}}
+        r = {'uuid': order_uuid, 'payment_info': {'total_value': payload_payment['total_value'] , 'qrcode': payment_info.qrcode,
+                                                     'qrcode_text': payment_info.qrcode_text}, 'quote_info': quote_info}
+        return r
 
     async def get_order_by_uuid(self, order_uuid: str):
         ...
 
     async def get_all_orders(self, params: Dict) -> List:
-        ...
+        results, total =  await self.orders_repository.get_all_order_with_parans(params=params)
+        return paginate(results, params.get('offset'), total)
 
     async def update_order_status(self, order_uuid: str):
         ...

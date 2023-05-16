@@ -1,31 +1,25 @@
 import datetime
 import enum
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from pydantic import BaseModel, Field
 
 
 class PaymentMethod(enum.Enum):
-    CREDIT_CART = 'credit card'
-    INVOICE = 'invoice'
-    PIX = 'PIX'
-
-class CreditCard(enum.Enum):
-    APPROVED = 'approved'
-    PENDING = 'pending'
-    DENIED = 'denied'
+    CREDIT_CART = 'credit_card'
+    BOLETO = 'boleto'
+    PIX = 'pix'
     
 
 class OrderItemsSchema(BaseModel):
     uuid: str
-    value: float
     quantity: int
 
 
 class CreateOrderSchema(BaseModel):
-    total_amount: int = Field(alias="totalAmount")
-    payment_type: PaymentMethod = Field(alias="paymentMethod")
-    instalments: int
+    address_id: int
+    quote_type: str
+    payment_method: PaymentMethod = Field(alias="paymentMethod")
     items: List[OrderItemsSchema]
 
     class Config:
@@ -33,7 +27,7 @@ class CreateOrderSchema(BaseModel):
         use_enum_values = True 
 
 
-class PaymentInfoSchema(BaseModel):
+class   PaymentInfoSchema(BaseModel):
 
     # pix
     total_value: float
@@ -46,11 +40,18 @@ class PaymentInfoSchema(BaseModel):
 class OrderCreatedSchema(BaseModel):
     uuid: str
     payment_info: PaymentInfoSchema
+    quote_info: Dict
 
 
 class OrderSchema(BaseModel):
     ...
 
+class ItensSchema(BaseModel):
+    uuid: str
+
+class CalcSchema(BaseModel):
+    address_uuid: str
+    items: List[OrderItemsSchema]
 
 class OrdersPaginateSchema(BaseModel):
     total: int
