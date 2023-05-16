@@ -1,3 +1,6 @@
+--trusted-host 44.211.201.219:8080
+--extra-index-url http://44.211.201.219:8080
+
 aioredis==2.0.1
 anyio==3.6.2
 async-timeout==4.0.2
