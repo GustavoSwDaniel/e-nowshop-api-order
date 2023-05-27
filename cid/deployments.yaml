@@ -13,8 +13,8 @@ spec:
         app: enowshop-api-order
     spec:
       containers:
-        - name: enowshop-api-user
-          image: gcr.io/enowhop/enowshop-api-order:5
+        - name: enowshop-api-order
+          image: gcr.io/enowhop/enowshop-api-order:11
           ports:
               - containerPort: 8081
           env:
