@@ -58,3 +58,13 @@ spec:
                 secretKeyRef:
                   name: api-orders-secrets
                   key: KEYCLOAK_PUBLIC_KEY
+            - name: PUBNUB_PUBLISH_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: api-orders-secrets
+                  key: PUBNUB_PUBLISH_KEY
+            - name: PUBNUB_SUBSCRIBE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: api-orders-secrets
+                  key: PUBNUB_SUBSCRIBE_KEY
