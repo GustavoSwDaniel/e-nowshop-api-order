@@ -32,7 +32,7 @@ pipeline {
         stage('Apply Kubernetes files'){
             steps {
                 withKubeConfig([credentialsId: 'kubeconfig']){ 
-                    sh "kubectl set image -f ./cid/deployments.yaml enowshop-api-orders=${HOSTNAME}/${PROJECT_ID}/${IMAGE_NAME}:${TAG_NAME}"
+                    sh "kubectl set image -f ./cid/deployments.yaml enowshop-api-order=${HOSTNAME}/${PROJECT_ID}/${IMAGE_NAME}:${TAG_NAME}"
                     sh 'kubectl apply -f ./cid/service.yaml'
                 }
             }
