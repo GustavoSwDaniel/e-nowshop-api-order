@@ -5,8 +5,6 @@ import json
 from typing import Dict, List
 from uuid import uuid4
 
-from aiokafka import AIOKafkaProducer
-
 from enowshop.endpoints.paginate import paginate
 from enowshop.endpoints.quotes.service import QuotesService
 from decimal import Decimal
@@ -24,7 +22,7 @@ class OrdersService:
                  order_items_repository: OrderItemsRepository, user_reponsitory: UserRepository,
                  user_address_repository: UsersAddressRepository,
                  quotes_service: QuotesService, payment_access_token: Dict,
-                 kafka_producer: AIOKafkaProducer, pubnub_client: PubNub):
+                 pubnub_client: PubNub):
         self.orders_repository = orders_repository
         self.products_repository = products_repository
         self.order_items_repository = order_items_repository
@@ -32,7 +30,6 @@ class OrdersService:
         self.user_address_repository = user_address_repository
         self.quotes_service = quotes_service
         self.payment_access_token = payment_access_token
-        self.kafka_producer = kafka_producer
         self.pubnub_client = pubnub_client
 
     @staticmethod

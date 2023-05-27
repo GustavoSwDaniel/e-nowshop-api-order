@@ -12,7 +12,6 @@ from enowshop.infrastructure.database.nosql import MongoDatabase
 from enowshop.infrastructure.cache.redis import RedisCache
 from enowshop.domain.correios.client import CorreiosClient
 from zeep import Client as SoapClient
-from aiokafka import AIOKafkaProducer
 from pubnub.pnconfiguration import PNConfiguration
 from pubnub.pubnub import PubNub
 
@@ -33,9 +32,6 @@ class Container(containers.DeclarativeContainer):
 
     # correios
     correios = providers.Singleton(CorreiosClient, client_soap=zeep_client)
-
-    # kafka producer
-    kafka_producer = providers.Singleton(AIOKafkaProducer, bootstrap_servers=Config.BROKER_URL)
 
     # redis cache
     # redis_cache = providers.Singleton(RedisCache, host=Config.REDIS_CACHE_HOST, password=Config.REDIS_CACHE_PASSWORD)
@@ -74,5 +70,4 @@ class Container(containers.DeclarativeContainer):
                                    user_address_repository=user_address_repository,
                                    quotes_service=quotes_service, 
                                    payment_access_token=Config.PAYMENT_ACCESS,
-                                   kafka_producer=kafka_producer,
                                    pubnub_client=pn)
