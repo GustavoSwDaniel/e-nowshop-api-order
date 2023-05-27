@@ -12,7 +12,9 @@ from enowshop.infrastructure.database.nosql import MongoDatabase
 from enowshop.infrastructure.cache.redis import RedisCache
 from enowshop.domain.correios.client import CorreiosClient
 from zeep import Client as SoapClient
-
+from aiokafka import AIOKafkaProducer
+from pubnub.pnconfiguration import PNConfiguration
+from pubnub.pubnub import PubNub
 
 class Container(containers.DeclarativeContainer):
     config = providers.Configuration()
@@ -20,12 +22,6 @@ class Container(containers.DeclarativeContainer):
     # Config database
     postgres_db = providers.Singleton(PostgresDatabase, database_url=Config.DATABASE_URL)
 
-    print(Config.MONGO_DATABASE_DB)
-    print(Config.MONGO_DATABASE_HOST)
-    print(Config.MONGO_DATABASE_PORT)
-    print(Config.MONGO_DATABASE_USER)
-    print(Config.MONGO_DATABASE_PASSWORD)
-    print(Config.MONGO_DATABASE_AUTH_SOURCE)
     # Config database
     mongo_database = providers.Singleton(MongoDatabase, database=Config.MONGO_DATABASE_DB,
                                          host=Config.MONGO_DATABASE_HOST, port=Config.MONGO_DATABASE_PORT,
@@ -38,6 +34,9 @@ class Container(containers.DeclarativeContainer):
     # correios
     correios = providers.Singleton(CorreiosClient, client_soap=zeep_client)
 
+    # kafka producer
+    kafka_producer = providers.Singleton(AIOKafkaProducer, bootstrap_servers=Config.BROKER_URL)
+
     # redis cache
     # redis_cache = providers.Singleton(RedisCache, host=Config.REDIS_CACHE_HOST, password=Config.REDIS_CACHE_PASSWORD)
 
@@ -48,6 +47,16 @@ class Container(containers.DeclarativeContainer):
     cars_repository = providers.Factory(CarsRepository, session_factory=mongo_database.provided.session)
     user_address_repository = providers.Factory(UsersAddressRepository, session_factory=postgres_db.provided.session)
     user_repository = providers.Factory(UserRepository, session_factory=postgres_db.provided.session)
+
+
+    #pubnub
+    pnconfig = PNConfiguration()
+    pnconfig.subscribe_key =  Config.PUBNUB_SUBSCRIBE_KEY
+    pnconfig.publish_key = Config.PUBNUB_PUBLISH_KEY
+    pnconfig.ssl = False
+    pnconfig.user_id = "payment-agent"
+    pn = providers.Factory(PubNub, pnconfig)
+
 
     # services
     quotes_service = providers.Factory(QuotesService, correios_client=correios, 
@@ -64,4 +73,6 @@ class Container(containers.DeclarativeContainer):
                                    user_reponsitory=user_repository,
                                    user_address_repository=user_address_repository,
                                    quotes_service=quotes_service, 
-                                   payment_access_token=Config.PAYMENT_ACCESS)
+                                   payment_access_token=Config.PAYMENT_ACCESS,
+                                   kafka_producer=kafka_producer,
+                                   pubnub_client=pn)

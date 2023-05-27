@@ -25,3 +25,6 @@ class Config:
     KEYCLOAK_PUBLIC_KEY = os.getenv('KEYCLOAK_PUBLIC_KEY')
 
     ORIGIN_CEP = os.getenv('ORIGIN_CEP', '01153000')
+    
+    PUBNUB_SUBSCRIBE_KEY = os.getenv('PUBNUB_SUBSCRIBE_KEY', 'sub-c-47cab205-d6cf-4e9f-91a7-bbb42cc8544c')
+    PUBNUB_PUBLISH_KEY = os.getenv('PUBNUB_PUBLISH_KEY', 'pub-c-b572a862-efaa-4b28-9462-82d0cb72a57c')

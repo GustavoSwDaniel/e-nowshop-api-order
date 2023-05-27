@@ -5,7 +5,7 @@ from enowshop_models.models.products import Products
 from enowshop_models.models.order_items import OrderItems
 from sqlalchemy import select, insert, func
 from enowshop.infrastructure.repositories.repository import SqlRepository
-
+from sqlalchemy import Unicode
 
 class OrdersRepository(SqlRepository):
     model = Orders
@@ -23,6 +23,11 @@ class OrdersRepository(SqlRepository):
             results = results.scalars().all()
 
             return results, total
+    
+    async def filter_by_json_order_mp_id(self, id):
+        async with self.session_factory() as session:
+            result = await session.execute(select(self.model).where(self.model.meta_data['payment']['id'].astext == id))
+            return result.scalars().first()
 
 class OrderItemsRepository(SqlRepository):
     model = OrderItems

@@ -40,6 +40,7 @@ class   PaymentInfoSchema(BaseModel):
 class OrderCreatedSchema(BaseModel):
     uuid: str
     payment_info: PaymentInfoSchema
+    channel_uuid: str
     quote_info: Dict
 
 
@@ -58,3 +59,7 @@ class OrdersPaginateSchema(BaseModel):
     offset: int
     count: int
     data: List[OrderSchema]
+
+
+class UpdateStatusSchema(BaseModel):
+    status: str

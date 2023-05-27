@@ -1,8 +1,11 @@
 import base64
 import datetime
 import io
+import json
 from typing import Dict, List
 from uuid import uuid4
+
+from aiokafka import AIOKafkaProducer
 
 from enowshop.endpoints.paginate import paginate
 from enowshop.endpoints.quotes.service import QuotesService
@@ -13,13 +16,15 @@ from enowshop.endpoints.orders.repository import OrdersRepository, ProductsRepos
 from enowshop.endpoints.cars.repository import UserRepository
 from enowshop.endpoints.quotes.repository import UsersAddressRepository
 from enowshop_payment.orders.build import BuildPayment
+from pubnub.pubnub import PubNub
 
 
 class OrdersService:
     def __init__(self, orders_repository: OrdersRepository, products_repository: ProductsRepository,
                  order_items_repository: OrderItemsRepository, user_reponsitory: UserRepository,
                  user_address_repository: UsersAddressRepository,
-                 quotes_service: QuotesService, payment_access_token: Dict):
+                 quotes_service: QuotesService, payment_access_token: Dict,
+                 kafka_producer: AIOKafkaProducer, pubnub_client: PubNub):
         self.orders_repository = orders_repository
         self.products_repository = products_repository
         self.order_items_repository = order_items_repository
@@ -27,6 +32,8 @@ class OrdersService:
         self.user_address_repository = user_address_repository
         self.quotes_service = quotes_service
         self.payment_access_token = payment_access_token
+        self.kafka_producer = kafka_producer
+        self.pubnub_client = pubnub_client
 
     @staticmethod
     def __build_order_items(products_id: List[int], order_id: int) -> List[Dict]:
@@ -76,6 +83,12 @@ class OrdersService:
                                                     type_quote=type_quote)
        return quote_value
 
+    def build_payload_topic(self, payment_id: str, order_uuid: str) -> Dict:
+        return {
+            'payment_id': payment_id,
+            'order_uuid': order_uuid
+        }
+
 
     async def create_order(self, order_data: Dict, user_uuid_keycloak: str) -> Dict:
         products_data = order_data.pop('items')
@@ -95,10 +108,12 @@ class OrdersService:
         payment = BuildPayment(payment_type='PIX').build_payment()
         payment_info = payment.create_order(order_data=payload_payment, access_key=self.payment_access_token['PIX'])
 
+        channel_uuid = str(uuid4())
+
         update_order = await self.orders_repository.update(pk=order.id, values={
             'total_amount': int(payload_payment['total_value'] * 100),
             'installments': 1,
-            'meta_data': payment_info.__dict__
+            'meta_data': {'pubnub': {'status': 'active', 'uuid': channel_uuid}, 'payment': payment_info.__dict__}
         })
 
         products_uuid = [product_uuid['uuid'] for product_uuid in products_data]
@@ -108,9 +123,11 @@ class OrdersService:
         order_items = self.__build_order_items(products_id=products_id, order_id=order.id)
 
         await self.order_items_repository.create_order_items(order_items=order_items)
+        
 
-        r = {'uuid': order_uuid, 'payment_info': {'total_value': payload_payment['total_value'] , 'qrcode': payment_info.qrcode,
+        r = {'uuid': order_uuid, 'channel_uuid': channel_uuid, 'payment_info': {'total_value': payload_payment['total_value'] , 'qrcode': payment_info.qrcode,
                                                      'qrcode_text': payment_info.qrcode_text}, 'quote_info': quote_info}
+
         return r
 
     async def get_order_by_uuid(self, order_uuid: str):
@@ -120,5 +137,19 @@ class OrdersService:
         results, total =  await self.orders_repository.get_all_order_with_parans(params=params)
         return paginate(results, params.get('offset'), total)
 
-    async def update_order_status(self, order_uuid: str):
-        ...
+    async def update_order_status(self, order_uuid: str, status: str) -> None:
+        self.orders_repository.update(pk=order_uuid, values={'status': status})
+    
+    async def check_and_update_orders(self, data: Dict) -> None:
+        payment = BuildPayment(payment_type='PIX').build_payment()
+        # payment_info = payment.get_order(access_key=self.payment_access_token['PIX'], order_id=data['data']['id'])
+
+        order = await self.orders_repository.filter_by_json_order_mp_id(id=data['data']['id'])
+        if order:
+            self.pubnub_client.publish().channel(order.meta_data['pubnub']['uuid']).message({'status': 'approved'}).sync()
+            await self.orders_repository.update(pk=order.id, values={'status': 'approved', 'payment_date': datetime.datetime.now(),
+                                                                     'payment_id': data['id']})
+
+
+
+        
