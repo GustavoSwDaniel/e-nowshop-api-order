@@ -141,7 +141,7 @@ class OrdersService:
         payment = BuildPayment(payment_type='PIX').build_payment()
         # payment_info = payment.get_order(access_key=self.payment_access_token['PIX'], order_id=data['data']['id'])
 
-        order = await self.orders_repository.filter_by_json_order_mp_id(id=data['data']['id'])
+        order = await self.orders_repository.filter_by_json_order_mp_id(id=str(data['data']['id']))
         if order:
             self.pubnub_client.publish().channel(order.meta_data['pubnub']['uuid']).message({'status': 'approved'}).sync()
             await self.orders_repository.update(pk=order.id, values={'status': 'approved', 'payment_date': datetime.datetime.now(),
