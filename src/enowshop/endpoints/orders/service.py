@@ -63,7 +63,7 @@ class OrdersService:
 
     async def build_pix_payload(self, products: List, quote_value: float):
         return {
-            'total_value': round(float(await self.sum_products(products=products) + quote_value), 2),
+            'total_value': 100,
             'user_info': { # round(Decimal(payload_payment.get("total_value")), 2)
                 'email': 'gustavodanieldetoledo@gmail.com',
                 'first_name': 'gustavo',
