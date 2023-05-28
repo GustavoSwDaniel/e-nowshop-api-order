@@ -15,9 +15,10 @@ router = APIRouter()
 @router.post('/orders', status_code=status.HTTP_201_CREATED, response_model=OrderCreatedSchema)
 @inject
 async def create_order(request: Request, order_data: CreateOrderSchema,
-                       # user_data_auth=Depends(verify_jwt),
+                       user_data_auth=Depends(verify_jwt),
                        orders_service: OrdersService = Depends(Provide(Container.orders_service))):
-    order = await orders_service.create_order(order_data=order_data.dict())
+    order = await orders_service.create_order(order_data=order_data.dict(), 
+                                              user_uuid_keycloak=user_data_auth.get('sub'))
     return order
 
 @router.post('/orders/calc')
