@@ -138,6 +138,8 @@ class OrdersService:
         self.orders_repository.update(pk=order_uuid, values={'status': status})
     
     async def check_and_update_orders(self, data: Dict) -> None:
+        if data['action'] == 'payment.created':
+            return
         payment = BuildPayment(payment_type='PIX').build_payment()
         # payment_info = payment.get_order(access_key=self.payment_access_token['PIX'], order_id=data['data']['id'])
 
