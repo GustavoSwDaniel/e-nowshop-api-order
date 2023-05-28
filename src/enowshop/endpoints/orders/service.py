@@ -147,7 +147,7 @@ class OrdersService:
         if order:
             self.pubnub_client.publish().channel(order.meta_data['pubnub']['uuid']).message({'status': 'approved'}).sync()
             await self.orders_repository.update(pk=order.id, values={'status': 'approved', 'payment_date': datetime.datetime.now(),
-                                                                     'payment_id': data['id']})
+                                                                     'payment_id': str(data['id'])})
 
 
 
