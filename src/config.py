@@ -30,4 +30,5 @@ class Config:
     PUBNUB_PUBLISH_KEY = os.getenv('PUBNUB_PUBLISH_KEY', 'pub-c-b572a862-efaa-4b28-9462-82d0cb72a57c')
 
     REDIS_HOST = os.getenv('REDIS_HOST', 'localhost')
-    
+    REDIS_USER = os.getenv('REDIS_USER', '')
+    REDIS_PASSWORD = os.getenv('REDIS_PASSWORD', '')

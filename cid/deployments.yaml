@@ -68,3 +68,18 @@ spec:
                 secretKeyRef:
                   name: api-orders-secrets
                   key: PUBNUB_SUBSCRIBE_KEY
+            - name: REDIS_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: api-orders-secrets
+                  key: REDIS_HOST
+            - name: REDIS_USER
+              valueFrom:
+                secretKeyRef:
+                  name: api-orders-secrets
+                  key: REDIS_USER
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: api-orders-secrets
+                  key: REDIS_PASSWORD
