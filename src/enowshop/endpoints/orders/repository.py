@@ -24,6 +24,11 @@ class OrdersRepository(SqlRepository):
 
             return results, total
     
+    async def get_order_by_uuid(self, uuid: str):
+        async with self.session_factory() as session:
+            result = await session.execute(select(self.model).where(self.model.uuid == uuid))
+            return result.scalars().first()
+    
     async def filter_by_json_order_mp_id(self, id):
         async with self.session_factory() as session:
             result = await session.execute(select(self.model).where(self.model.meta_data['payment']['id'].astext == id))
@@ -36,6 +41,11 @@ class OrderItemsRepository(SqlRepository):
         async with self.session_factory() as session:
             result = await session.execute(insert(self.model), order_items)
             await session.commit()
+    
+    async def get_order_items_by_order_id(self, order_id: str):
+        async with self.session_factory() as session:
+            result = await session.execute(select(self.model).where(self.model.order_id == order_id))
+            return result.scalars().all()
 
 
 class ProductsRepository(SqlRepository):
@@ -50,6 +60,11 @@ class ProductsRepository(SqlRepository):
     async def get_products_by_uuid(self, uuid: str) -> Products:
         async with self.session_factory() as session:
             result = await session.execute(select(self.model).where(self.model.uuid == uuid))
+            return result.scalars().first()
+    
+    async def get_products_by_id(self, id: str) -> Products:
+        async with self.session_factory() as session:
+            result = await session.execute(select(self.model).where(self.model.id == id))
             return result.scalars().first()
 
 class UserRepository(SqlRepository):

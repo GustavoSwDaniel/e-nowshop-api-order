@@ -1,0 +1,12 @@
+{
+    "actions": "payment.created",
+    "api_version": "v1",
+    "data": {
+        "id": 58346665692
+    },
+    "data_created": "2022-05-21T14:42:02Z",
+    "id": 12345678,
+    "live_mode": false,
+    "type": "payment",
+    "user_id": "123456"
+}

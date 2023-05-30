@@ -15,6 +15,7 @@ from enowshop.endpoints.cars.repository import UserRepository
 from enowshop.endpoints.quotes.repository import UsersAddressRepository
 from enowshop_payment.orders.build import BuildPayment
 from pubnub.pubnub import PubNub
+from async_tasks.tasks.orders import decrement_product_of_inventory 
 
 
 class OrdersService:
@@ -33,10 +34,10 @@ class OrdersService:
         self.pubnub_client = pubnub_client
 
     @staticmethod
-    def __build_order_items(products_id: List[int], order_id: int) -> List[Dict]:
+    def __build_order_items(products: List[Dict], order_id: int) -> List[Dict]:
         order_items = []
-        for product_id in products_id:
-            order_items.append({'product_id': product_id, 'order_id': order_id})
+        for product in products:
+            order_items.append({'product_id': product['product_id'], 'quantity': product['quantity'],'order_id': order_id})
 
         return order_items
 
@@ -115,13 +116,16 @@ class OrdersService:
 
         products_uuid = [product_uuid['uuid'] for product_uuid in products_data]
         products = await self.products_repository.get_products_by_list_uuid(uuids=products_uuid)
-        products_id = [product_id.id for product_id in products]
+        products_id = {}
+        for product_data in products_data:
+            for product in products:
+                if product_data['uuid'] == product.uuid:
+                    products_id.append({'product_id': product.id, 'quantity': product_data['quantity']})
 
         order_items = self.__build_order_items(products_id=products_id, order_id=order.id)
 
         await self.order_items_repository.create_order_items(order_items=order_items)
         
-
         r = {'uuid': order_uuid, 'channel_uuid': channel_uuid, 'payment_info': {'total_value': payload_payment['total_value'] , 'qrcode': payment_info.qrcode,
                                                      'qrcode_text': payment_info.qrcode_text}, 'quote_info': quote_info}
 
@@ -144,11 +148,17 @@ class OrdersService:
         # payment_info = payment.get_order(access_key=self.payment_access_token['PIX'], order_id=data['data']['id'])
         print(data)
         order = await self.orders_repository.filter_by_json_order_mp_id(id=str(data['data']['id']))
+        decrement_product_of_inventory.delay(order_uuid=order.uuid)
         if order:
             self.pubnub_client.publish().channel(order.meta_data['pubnub']['uuid']).message({'status': 'approved'}).sync()
             await self.orders_repository.update(pk=order.id, values={'status': 'approved', 'payment_date': datetime.datetime.now(),
-                                                                     'payment_id': str(data['id'])})
+                                                                    'payment_id': str(data['id'])})
 
-
-
+    async def decrement_products_quantity(self, order_id: str) -> None:
+        order = await self.orders_repository.get_order_by_uuid(uuid=order_id)
+        products = await self.order_items_repository.get_order_items_by_order_id(order_id=order.id)
+        for product in products:
+            product_data = await self.products_repository.get_products_by_id(product.product_id)
+            await self.products_repository.update(pk=product.product_id, values={'unity': product_data.unity - product.quantity, 'market': product_data.market + product.quantity})
+        return
         

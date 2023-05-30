@@ -6,7 +6,6 @@ from enowshop.endpoints.orders.service import OrdersService
 from dependency_injector.wiring import inject, Provide
 from enowshop.endpoints.dependecies import verify_jwt
 
-
 from enowshop.infrastructure.container import Container
 
 router = APIRouter()
@@ -62,6 +61,12 @@ async def order_webhook(request: Request, orders_service: OrdersService = Depend
     await orders_service.check_and_update_orders(data=data)
     return
 
+@router.patch('/orders/{order_id}/products/decrement', status_code=status.HTTP_204_NO_CONTENT)
+@inject
+async def decrement_product_quantity(request: Request, order_id: str,
+                                        orders_service: OrdersService = Depends(Provide(Container.orders_service))):
+    await orders_service.decrement_products_quantity(order_id=order_id)
+    return 
 
 def configure(app: FastAPI):
     app.include_router(router)
