@@ -122,7 +122,7 @@ class OrdersService:
                 if product_data['uuid'] == product.uuid:
                     products_id.append({'product_id': product.id, 'quantity': product_data['quantity']})
 
-        order_items = self.__build_order_items(products_id=products_id, order_id=order.id)
+        order_items = self.__build_order_items(products=products_id, order_id=order.id)
 
         await self.order_items_repository.create_order_items(order_items=order_items)
         
