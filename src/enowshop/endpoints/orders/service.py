@@ -116,7 +116,7 @@ class OrdersService:
 
         products_uuid = [product_uuid['uuid'] for product_uuid in products_data]
         products = await self.products_repository.get_products_by_list_uuid(uuids=products_uuid)
-        products_id = {}
+        products_id = []
         for product_data in products_data:
             for product in products:
                 if product_data['uuid'] == product.uuid:
