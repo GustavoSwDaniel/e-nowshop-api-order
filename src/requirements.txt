@@ -28,7 +28,7 @@ dnspython==2.3.0
 ecdsa==0.18.0
 enowshop-models==0.4.35
 enowshop-payment==0.1.5
-enowshop-tasks==0.0.1
+enowshop-tasks==0.0.2
 fastapi==0.88.0
 frozenlist==1.3.3
 greenlet==2.0.1
