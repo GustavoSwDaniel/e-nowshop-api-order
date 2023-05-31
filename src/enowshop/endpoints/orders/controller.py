@@ -5,6 +5,8 @@ from enowshop.endpoints.orders.schema import CreateOrderSchema, OrderCreatedSche
 from enowshop.endpoints.orders.service import OrdersService
 from dependency_injector.wiring import inject, Provide
 from enowshop.endpoints.dependecies import verify_jwt
+from distutils.util import strtobool
+
 
 from enowshop.infrastructure.container import Container
 
@@ -38,6 +40,7 @@ async def get_orders(request: Request,
                      orders_service: OrdersService = Depends(Provide(Container.orders_service))):
     params = request.query_params
     params = {
+        'expirate': bool(strtobool(params.get('expirate', 'False'))),
         'status': params.get('status', None),
         'limit': int(params.get('limit', 12)),
         'offset': int(params.get('offset', 0)),
@@ -67,6 +70,7 @@ async def decrement_product_quantity(request: Request, order_id: str,
                                         orders_service: OrdersService = Depends(Provide(Container.orders_service))):
     await orders_service.decrement_products_quantity(order_id=order_id)
     return 
+
 
 def configure(app: FastAPI):
     app.include_router(router)

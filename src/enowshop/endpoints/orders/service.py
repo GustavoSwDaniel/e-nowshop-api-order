@@ -139,7 +139,7 @@ class OrdersService:
         return paginate(results, params.get('offset'), total)
 
     async def update_order_status(self, order_uuid: str, status: str) -> None:
-        self.orders_repository.update(pk=order_uuid, values={'status': status})
+        await self.orders_repository.update_order_by_uuid(uuid=order_uuid, values={'status': status})
     
     async def check_and_update_orders(self, data: Dict) -> None:
         if data['action'] == 'payment.created':

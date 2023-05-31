@@ -1,20 +1,29 @@
+from datetime import timedelta, datetime
 from typing import List, Dict
 from enowshop_models.models.users import Users
 from enowshop_models.models.orders import Orders
 from enowshop_models.models.products import Products
 from enowshop_models.models.order_items import OrderItems
-from sqlalchemy import select, insert, func
+from sqlalchemy import select, insert, func, and_
 from enowshop.infrastructure.repositories.repository import SqlRepository
 from sqlalchemy import Unicode
+from sqlalchemy import select, update
+
 
 class OrdersRepository(SqlRepository):
     model = Orders
 
     async def get_all_order_with_parans(self, params: Dict):
         async with self.session_factory() as session:
-            query = select(self.model).limit(params.get('limit')).offset(params.get('offset'))
+            if params.get('expirate'):
+                query = select(self.model)
+            else:
+                query = select(self.model).limit(params.get('limit')).offset(params.get('offset'))
             if params.get('status'):
                 query = query.where(self.model.status == params.get('status'))
+            if params.get('expirate'):
+                tempo_limite = datetime.now() - timedelta(minutes=15)
+                query = query.where(and_(self.model.status == 'pending', self.model.created_at <= tempo_limite))
             
             total = await session.execute(select([func.count(Products.id)]).select_from(Products))
             results = await session.execute(query)
@@ -33,6 +42,11 @@ class OrdersRepository(SqlRepository):
         async with self.session_factory() as session:
             result = await session.execute(select(self.model).where(self.model.meta_data['payment']['id'].astext == id))
             return result.scalars().first()
+
+    async def update_order_by_uuid(self, uuid: str, values: Dict):
+        async with self.session_factory() as session:
+            await session.execute(update(self.model).where(self.model.uuid == uuid).values(**values))
+            await session.commit()
 
 class OrderItemsRepository(SqlRepository):
     model = OrderItems
