@@ -20,12 +20,8 @@ class CarsService:
         self._quotes_service = quotes_service
         
 
-    async def create_cars(self, cars_data: Dict):
-        items = [Items(**item) for item in cars_data.get('items')]
-        
-        car = Cars(user_uuid=cars_data.get('user_uuid'),
-                   items=items
-                   )
+    async def create_cars(self, uuid: str):
+        car = Cars(user_uuid=uuid, items=[])
         await self._cars_repository.save_if_not_exists(car)
 
     async def get_user_by_keycloak_uuid(self, user_uuid: str) -> Users:

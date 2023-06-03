@@ -46,3 +46,4 @@ class CarSchema(BaseModel):
     quoet_value: Optional[str]
     quoets: Optional[List[Dict]]
     items: List[ProductsSchema]
+    

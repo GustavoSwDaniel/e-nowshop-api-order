@@ -10,12 +10,12 @@ from enowshop.endpoints.cars.service import CarsService
 router = APIRouter()
 
 
-@router.post("/car", status_code=status.HTTP_201_CREATED)
+@router.post("/car/{uuid}", status_code=status.HTTP_201_CREATED)
 @inject
-async def create_car(request: Request, cars_data: CarSchema,
+async def create_car(request: Request, uuid: str,
                      cars_service: CarsService = Depends(Provide(Container.cars_service))):
-    await cars_service.create_cars(cars_data=cars_data.dict())
-    return {'test': 'test'}
+    await cars_service.create_cars(uuid=uuid)
+    return 
 
 
 @router.get("/car", status_code=status.HTTP_200_OK, response_model=CarSchema)
