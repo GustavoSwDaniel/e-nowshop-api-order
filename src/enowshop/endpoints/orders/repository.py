@@ -47,6 +47,17 @@ class OrdersRepository(SqlRepository):
         async with self.session_factory() as session:
             await session.execute(update(self.model).where(self.model.uuid == uuid).values(**values))
             await session.commit()
+    
+    async def get_orders_by_user(self, user_id: str, params: Dict):
+        async with self.session_factory() as session:
+            query = select(self.model).where(self.model.user_id == user_id).limit(params.get('limit')).offset(params.get('offset'))
+            total = await session.execute(select([func.count(self.model.id)]))
+            results = await session.execute(query)
+
+            total = total.scalar()
+            results = results.scalars().all()
+
+            return results, total
 
 class OrderItemsRepository(SqlRepository):
     model = OrderItems
@@ -60,6 +71,21 @@ class OrderItemsRepository(SqlRepository):
         async with self.session_factory() as session:
             result = await session.execute(select(self.model).where(self.model.order_id == order_id))
             return result.scalars().all()
+    
+    async def get_product_by_order_id(self, order_id: str):
+        async with self.session_factory() as session:
+            result = await session.execute(select(self.model, Products)
+                                           .join(Products, self.model.product_id == Products.id)
+                                           .where(self.model.order_id == order_id))
+            products = []
+            for row in result:
+                products.append({
+                    'name': row.Products.name,
+                    'quantity': row.OrderItems.quantity,
+                    'image': row.Products.image_url,
+                    'price': row.Products.price * row.OrderItems.quantity,
+                })
+            return products
 
 
 class ProductsRepository(SqlRepository):

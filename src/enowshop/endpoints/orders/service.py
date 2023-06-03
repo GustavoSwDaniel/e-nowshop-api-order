@@ -162,3 +162,12 @@ class OrdersService:
             await self.products_repository.update(pk=product.product_id, values={'unity': product_data.unity - product.quantity, 'market': product_data.market + product.quantity})
         return
         
+    async def get_orders_by_user(self, user_uuid: str, params: Dict) -> List:
+        user = await self.user_reponsitory.filter_by({'keycloak_uuid': user_uuid})
+        results, total = await self.orders_repository.get_orders_by_user(user_id=user.id, params=params)
+        return paginate(results, params.get('offset'), total)
+
+    async def get_products_by_order_id(self, order_uuid: str) -> List:
+        order = await self.orders_repository.filter_by({'uuid': order_uuid})
+        products = await self.order_items_repository.get_product_by_order_id(order_id=order.id)
+        return products

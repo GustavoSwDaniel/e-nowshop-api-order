@@ -2,7 +2,7 @@ import datetime
 import enum
 from typing import Dict, List, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, validator
 
 
 class PaymentMethod(enum.Enum):
@@ -14,7 +14,6 @@ class PaymentMethod(enum.Enum):
 class OrderItemsSchema(BaseModel):
     uuid: str
     quantity: int
-
 
 class CreateOrderSchema(BaseModel):
     address_id: int
@@ -45,7 +44,18 @@ class OrderCreatedSchema(BaseModel):
 
 
 class OrderSchema(BaseModel):
-    ...
+    uuid: str
+    total_amount: int
+    status: str
+    payment_method: str
+
+    class Config:
+        orm_mode = True
+
+    @validator('total_amount')
+    def convert_total_amount(cls, v):
+        return f'{v/100:.2f}'
+
 
 class ItensSchema(BaseModel):
     uuid: str
