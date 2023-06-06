@@ -5,8 +5,10 @@ import json
 from typing import Dict, List
 from uuid import uuid4
 
+
 from enowshop.endpoints.paginate import paginate
 from enowshop.endpoints.quotes.service import QuotesService
+from enowshop.endpoints.cars.service import CarsService
 from decimal import Decimal
 import pyqrcode
 
@@ -23,6 +25,7 @@ class OrdersService:
                  order_items_repository: OrderItemsRepository, user_reponsitory: UserRepository,
                  user_address_repository: UsersAddressRepository,
                  quotes_service: QuotesService, payment_access_token: Dict,
+                 car_service: CarsService,
                  pubnub_client: PubNub):
         self.orders_repository = orders_repository
         self.products_repository = products_repository
@@ -32,6 +35,7 @@ class OrdersService:
         self.quotes_service = quotes_service
         self.payment_access_token = payment_access_token
         self.pubnub_client = pubnub_client
+        self.car_service = car_service
 
     @staticmethod
     def __build_order_items(products: List[Dict], order_id: int) -> List[Dict]:
@@ -125,9 +129,12 @@ class OrdersService:
         order_items = self.__build_order_items(products=products_id, order_id=order.id)
 
         await self.order_items_repository.create_order_items(order_items=order_items)
+
         
         r = {'uuid': order_uuid, 'channel_uuid': channel_uuid, 'payment_info': {'total_value': payload_payment['total_value'] , 'qrcode': payment_info.qrcode,
                                                      'qrcode_text': payment_info.qrcode_text}, 'quote_info': quote_info}
+
+        await self.car_service.empty_car(user_uuid=user_uuid_keycloak)
 
         return r
 

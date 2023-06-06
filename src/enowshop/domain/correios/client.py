@@ -21,25 +21,38 @@ class CorreiosClient:
         )
 
     def calc_quotes_pac(self, cep_origem, cep_destino, peso, comprimento, altura, largura, diametro):
-        print('pac')
-        print(cep_origem, cep_destino, peso, comprimento, altura, largura, diametro)
-        response = self.__calcFrete(cep_origem, cep_destino, peso, comprimento, altura, largura, diametro, '41106')
-        return  {
-                'name': 'PAC',
-                'valor': str(response.cServico[0].Valor).replace('.', ','),
-                'prazo': response.cServico[0].PrazoEntrega,
-                'cep': cep_destino
-            }
+        try:
+            response = self.__calcFrete(cep_origem, cep_destino, peso, comprimento, altura, largura, diametro, '41106')
+            return  {
+                    'name': 'PAC',
+                    'valor': str(response.cServico[0].Valor).replace('.', ','),
+                    'prazo': response.cServico[0].PrazoEntrega,
+                    'cep': cep_destino
+                }
+        except Exception:
+            return {
+                    'name': 'PAC',
+                    'valor': '0,00',
+                    'prazo': 0,
+                    'cep': cep_destino
+                }
     
     def calc_quotes_sedex(self, cep_origem, cep_destino, peso, comprimento, altura, largura, diametro):
-        print('sedex')
-        print(cep_origem, cep_destino, peso, comprimento, altura, largura, diametro)
-        response =  self.__calcFrete(cep_origem, cep_destino, peso, comprimento, altura, largura, diametro, '40010')
-        return {
-                'name': 'Sedex',
-                'valor': str(response.cServico[0].Valor).replace('.', ','),
-                'prazo': response.cServico[0].PrazoEntrega,
-                'cep': cep_destino
-            }
+        try:
+            response =  self.__calcFrete(cep_origem, cep_destino, peso, comprimento, altura, largura, diametro, '40010')
+            return {
+                    'name': 'Sedex',
+                    'valor': str(response.cServico[0].Valor).replace('.', ','),
+                    'prazo': response.cServico[0].PrazoEntrega,
+                    'cep': cep_destino
+                }
+        except Exception:
+            return {
+                    'name': 'Sedex',
+                    'valor': '0,00',
+                    'prazo': 0,
+                    'cep': cep_destino
+                }
+
 
     

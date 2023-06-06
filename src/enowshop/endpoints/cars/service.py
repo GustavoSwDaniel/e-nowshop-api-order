@@ -103,3 +103,12 @@ class CarsService:
     async def change_quantity_item_in_car(self, item_uuid: str, user_uuid: str, new_quantity: int):
         await self._cars_repository.change_quantity_item_in_car(item_uuid=item_uuid, user_uuid=user_uuid,
                                                                 new_quantity=new_quantity)
+    
+    async def empty_car(self, user_uuid: str):
+        user = await self.get_user_by_keycloak_uuid(user_uuid=user_uuid)
+        await self._cars_repository.clean_car(user_uuid=user.uuid)
+
+    async def get_car_lenght(self, user_uuid: str) -> int:
+        user = await self.get_user_by_keycloak_uuid(user_uuid=user_uuid)
+        car = await self._cars_repository.get_car_by_user_uuid(user_uuid=user.uuid)
+        return len(car.items)

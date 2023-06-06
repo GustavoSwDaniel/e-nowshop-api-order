@@ -1,6 +1,6 @@
 from enowshop.endpoints.quotes.schema import QuotesListSchema
 from enowshop.helpers import int_to_float
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, validator, root_validator
 from typing import Dict, List, Optional
 from datetime import datetime
 
@@ -36,6 +36,15 @@ class ProductsSchema(BaseModel):
     @validator('price')
     def price_to_float(cls, v):
         return int_to_float(v)
+
+    @root_validator
+    def validate_quantity(cls, values):
+        if values.get('quantity_car') > values.get('unity'):
+           values['sold_out'] = True
+        elif values.get('unity') > 0:
+            values['sold_out'] = True
+        return values
+    
     
 
 class CarSchema(BaseModel):

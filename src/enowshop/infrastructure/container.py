@@ -11,7 +11,7 @@ from enowshop.infrastructure.database.database_sql import PostgresDatabase
 from enowshop.infrastructure.database.nosql import MongoDatabase
 from enowshop.infrastructure.cache.redis import RedisCache
 from enowshop.domain.correios.client import CorreiosClient
-from zeep import Client as SoapClient
+from zeep import Client as SoapClient, Transport
 from pubnub.pnconfiguration import PNConfiguration
 from pubnub.pubnub import PubNub
 
@@ -28,7 +28,8 @@ class Container(containers.DeclarativeContainer):
                                          authentication_source=Config.MONGO_DATABASE_AUTH_SOURCE)
     
     # zeep client soap
-    zeep_client = providers.Singleton(SoapClient, wsdl=Config.URL_CORREIOS)
+    transport = Transport(timeout=2)
+    zeep_client = providers.Singleton(SoapClient, wsdl=Config.URL_CORREIOS, transport=transport)
 
     # correios
     correios = providers.Singleton(CorreiosClient, client_soap=zeep_client)
@@ -70,4 +71,5 @@ class Container(containers.DeclarativeContainer):
                                    user_address_repository=user_address_repository,
                                    quotes_service=quotes_service, 
                                    payment_access_token=Config.PAYMENT_ACCESS,
-                                   pubnub_client=pn)
+                                   pubnub_client=pn,
+                                   car_service=cars_service)

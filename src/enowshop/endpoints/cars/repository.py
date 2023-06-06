@@ -76,3 +76,11 @@ class CarsRepository(NosqlRepository):
                 await session.save(car)
         else:
             await self.remove_item_of_car(user_uuid=user_uuid, item_uuid=item_uuid)
+
+    async def clean_car(self, user_uuid: str):
+        car = await self.get_car_by_user_uuid(user_uuid=user_uuid)
+        print(car.items)
+        car.items = []
+        print(car.items)
+        with self.session_factory() as session:
+            await session.save(car)
