@@ -21,10 +21,11 @@ async def create_car(request: Request, uuid: str,
 @router.get("/car", status_code=status.HTTP_200_OK, response_model=CarSchema)
 @inject
 async def get_car(request: Request,
+                  user_data_auth=Depends(verify_jwt),
                   cars_service: CarsService = Depends(Provide(Container.cars_service))):
     params = request.query_params
     send_type = params.get('type_send', None)
-    return await cars_service.get_car_with_user_uuid(user_uuid='628c4b78-37ad-4047-8411-e12fd1ad6b69', send_type=send_type)
+    return await cars_service.get_car_with_user_uuid(user_uuid=user_data_auth.get('sub'), send_type=send_type)
 
 
 @router.put('/car')
