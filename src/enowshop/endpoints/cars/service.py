@@ -101,7 +101,8 @@ class CarsService:
         await self._cars_repository.remove_item_of_car(user_uuid=user.uuid, item_uuid=item_uuid)
 
     async def change_quantity_item_in_car(self, item_uuid: str, user_uuid: str, new_quantity: int):
-        await self._cars_repository.change_quantity_item_in_car(item_uuid=item_uuid, user_uuid=user_uuid,
+        user = await self.get_user_by_keycloak_uuid(user_uuid=user_uuid)
+        await self._cars_repository.change_quantity_item_in_car(item_uuid=item_uuid, user_uuid=user.uuid,
                                                                 new_quantity=new_quantity)
     
     async def empty_car(self, user_uuid: str):

@@ -46,12 +46,13 @@ async def delete_car(request: Request, item_uuid: str,
     return {}
 
 
-@router.put('/car/{user_uuid}/item/{item_uuid}', status_code=status.HTTP_204_NO_CONTENT)
+@router.put('/car/item/{item_uuid}', status_code=status.HTTP_204_NO_CONTENT)
 @inject
-async def update_quantity(request: Request, user_uuid: str, item_uuid: str,
+async def update_quantity(request: Request, item_uuid: str,
                           new_quantity: ChangeQuantity,
+                          user_data_auth=Depends(verify_jwt),
                           cars_service: CarsService = Depends(Provide(Container.cars_service))):
-    await cars_service.change_quantity_item_in_car(user_uuid=user_uuid, item_uuid=item_uuid,
+    await cars_service.change_quantity_item_in_car(user_uuid=user_data_auth.get('sub'), item_uuid=item_uuid,
                                                    new_quantity=new_quantity.dict()['quantity'])
     return {}
 
