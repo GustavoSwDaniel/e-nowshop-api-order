@@ -39,7 +39,7 @@ async def add_item_car(request: Request, new_item: CarItems,
 
 @router.delete('/car/item/{item_uuid}', status_code=status.HTTP_204_NO_CONTENT)
 @inject
-async def delete_car(request: Request, user_uuid: str, item_uuid: str,
+async def delete_car(request: Request, item_uuid: str,
                      user_data_auth=Depends(verify_jwt),
                      cars_service: CarsService = Depends(Provide(Container.cars_service))):
     await cars_service.remove_item_in_car(user_uuid=user_data_auth.get('sub'), item_uuid=item_uuid)

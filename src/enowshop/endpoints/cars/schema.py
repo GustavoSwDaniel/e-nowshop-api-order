@@ -39,11 +39,11 @@ class ProductsSchema(BaseModel):
 
     @root_validator
     def validate_quantity(cls, values):
-        values['sold_out'] = True
+        values['sold_out'] = False
         if values.get('quantity_car') > values.get('unity'):
-           values['sold_out'] = False
+           values['sold_out'] = True
         elif values.get('unity') <= 0:
-            values['sold_out'] = False
+            values['sold_out'] = True
         return values
     
     
